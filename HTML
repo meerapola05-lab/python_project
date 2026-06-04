@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Campus Information System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0f14; --surface:#161a22; --card:#1e2330; --border:#2a3040;
+  --green:#4ade80; --blue:#38bdf8; --yellow:#f59e0b; --red:#f87171;
+  --text:#e2e8f0; --muted:#64748b;
+  --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+
+header{display:flex;align-items:center;gap:12px;padding:16px 28px;border-bottom:1px solid var(--border)}
+.logo{font-family:var(--mono);font-size:11px;background:var(--green);color:#000;padding:3px 8px;border-radius:4px}
+header h1{font-size:15px;font-weight:600}
+header small{margin-left:auto;color:var(--muted);font-family:var(--mono);font-size:11px}
+
+.layout{display:grid;grid-template-columns:190px 1fr;height:calc(100vh - 54px)}
+nav{border-right:1px solid var(--border);padding:12px 0;overflow-y:auto}
+.nav-group{padding:12px 16px 4px;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-family:var(--mono)}
+nav button{display:block;width:100%;text-align:left;padding:9px 18px;background:none;border:none;border-left:3px solid transparent;color:var(--muted);font-family:var(--sans);font-size:13px;cursor:pointer;transition:.15s}
+nav button:hover{color:var(--text);background:var(--surface)}
+nav button.active{color:var(--green);border-left-color:var(--green);background:var(--surface)}
+
+main{overflow-y:auto;padding:24px 28px}
+.tab{display:none}.tab.active{display:block}
+
+h2{font-size:17px;font-weight:600;margin-bottom:2px}
+.sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:18px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:12px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px;font-family:var(--mono)}
+input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:6px;font-family:var(--sans);font-size:13px;outline:none}
+input:focus{border-color:var(--green)}
+
+button.btn{padding:8px 16px;background:var(--green);color:#000;border:none;border-radius:6px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+button.btn:hover{opacity:.85}
+button.btn.sec{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+button.btn.sec:hover{border-color:var(--green);color:var(--green)}
+
+.out{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-top:12px;font-family:var(--mono);font-size:12px;line-height:1.9;white-space:pre-wrap;display:none}
+.ok{color:var(--green)}.warn{color:var(--yellow)}.err{color:var(--red)}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th{text-align:left;padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);font-family:var(--mono);font-weight:400}
+td{padding:9px 10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.badge{padding:2px 8px;border-radius:20px;font-size:11px;font-family:var(--mono)}
+.A{background:rgba(74,222,128,.15);color:var(--green)}
+.B{background:rgba(56,189,248,.15);color:var(--blue)}
+.C{background:rgba(245,158,11,.15);color:var(--yellow)}
+.D,.F{background:rgba(248,113,113,.15);color:var(--red)}
+
+.drow{display:grid;grid-template-columns:80px 1fr 80px 28px;gap:8px;margin-bottom:7px;align-items:end}
+.drow button{background:none;border:1px solid var(--border);color:var(--red);border-radius:5px;cursor:pointer;height:34px;font-size:15px}
+
+.tree{font-family:var(--mono);font-size:12px;line-height:2.1;margin-top:10px}
+.tree .d{color:var(--blue)}.tree .f{color:var(--muted)}
+
+.bars{display:flex;gap:10px;align-items:flex-end;height:110px;margin-top:12px}
+.bwrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height .4s}
+.blabel{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.bval{font-size:11px}
+
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:12px}
+.stat .val{font-size:20px;font-weight:600;color:var(--green);font-family:var(--mono)}
+.stat .key{font-size:11px;color:var(--muted);margin-top:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SCIS</div>
+  <h1>Smart Campus Information System</h1>
+  <small>Lab 9 — Integrated System</small>
+</header>
+
+<div class="layout">
+<nav>
+  <div class="nav-group">Modules</div>
+  <button class="active" onclick="go('lab1',this)">① Registration</button>
+  <button onclick="go('lab2',this)">② Enrollment</button>
+  <button onclick="go('lab3',this)">③ Records</button>
+  <button onclick="go('lab4',this)">④ Sort & Search</button>
+  <button onclick="go('lab5',this)">⑤ Fee Calc</button>
+  <button onclick="go('lab6',this)">⑥ File Manager</button>
+  <button onclick="go('lab7',this)">⑦ Dir Scanner</button>
+  <button onclick="go('lab8',this)">⑧ Analytics</button>
+</nav>
+
+<main>
+
+<!-- LAB 1 -->
+<div id="lab1" class="tab active">
+  <h2>Student Registration & Grade Evaluation</h2>
+  <div class="sub">Lab 1 — if / elif / else</div>
+  <div class="card">
+    <div class="grid2">
+      <div><label>Student Name</label><input id="r-name" placeholder="e.g. Priya"/></div>
+      <div><label>Exam Score (0–100)</label><input id="r-score" type="number" placeholder="82"/></div>
+    </div>
+    <button class="btn" onclick="doRegister()">Evaluate Grade</button>
+    <div id="r-out" class="out"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Registered Students</div>
+    <table><thead><tr><th>Name</th><th>Score</th><th>Grade</th><th>Remark</th></tr></thead>
+    <tbody id="r-table"></tbody></table>
+  </div>
+</div>
+
+<!-- LAB 2 -->
+<div id="lab2" class="tab">
+  <h2>Course Enrollment Management</h2>
+  <div class="sub">Lab 2 — while loop, continue, break (max 5 courses)</div>
+  <div class="card">
+    <div class="grid2">
+      <div><label>Course Name</label><input id="e-course" placeholder="Mathematics"/></div>
+      <div><label>Credits</label><input id="e-credits" type="number" placeholder="4"/></div>
+    </div>
+    <button class="btn" onclick="doEnroll()">Add Course</button>
+    <button class="btn sec" style="margin-left:8px" onclick="resetCourses()">Clear All</button>
+    <div id="e-out" class="out"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Enrolled Courses</div>
+    <table><thead><tr><th>#</th><th>Course</th><th>Credits</th></tr></thead>
+    <tbody id="e-table"></tbody></table>
+  </div>
+</div>
+
+<!-- LAB 3 -->
+<div id="lab3" class="tab">
+  <h2>Student Records & Event Participation</h2>
+  <div class="sub">Lab 3 — lists, dictionaries, sets</div>
+  <div class="card">
+    <div class="card-title">Student Records (List of Dicts)</div>
+    <table><thead><tr><th>Name</th><th>Age</th><th>Grades</th><th>Average</th></tr></thead>
+    <tbody id="rec-table"></tbody></table>
+  </div>
+  <div class="card">
+    <div class="card-title">Event Participation — Set Operations</div>
+    <div class="grid2">
+      <div><label>Event A participants (comma-separated)</label><input id="setA" value="Priya,Rahul,Anita,Kiran"/></div>
+      <div><label>Event B participants</label><input id="setB" value="Rahul,Anita,Sneha"/></div>
+    </div>
+    <button class="btn" onclick="doSets()">Run Set Analysis</button>
+    <div id="set-out" class="out"></div>
+  </div>
+</div>
+
+<!-- LAB 4 -->
+<div id="lab4" class="tab">
+  <h2>Sort & Search Student IDs</h2>
+  <div class="sub">Lab 4 — Bubble Sort, Linear Search, Binary Search</div>
+  <div class="card">
+    <div class="grid2">
+      <div><label>Student IDs (comma-separated)</label><input id="ss-ids" value="105,102,110,108,101,115"/></div>
+      <div><label>Search Target ID</label><input id="ss-target" type="number" value="108"/></div>
+    </div>
+    <button class="btn" onclick="doSortSearch()">Sort & Search</button>
+    <div id="ss-out" class="out"></div>
+  </div>
+</div>
+
+<!-- LAB 5 -->
+<div id="lab5" class="tab">
+  <h2>Student Fee Calculation</h2>
+  <div class="sub">Lab 5 — functions with default parameters</div>
+  <div class="card">
+    <div class="grid3">
+      <div><label>Tuition Fee (₹)</label><input id="f-t" type="number" value="50000"/></div>
+      <div><label>Hostel Fee (₹)</label><input id="f-h" type="number" value="30000"/></div>
+      <div><label>Transport Fee (₹)</label><input id="f-tr" type="number" value="10000"/></div>
+    </div>
+    <button class="btn" onclick="doFee()">Calculate Total Fee</button>
+    <div id="f-out" class="out"></div>
+  </div>
+</div>
+
+<!-- LAB 6 -->
+<div id="lab6" class="tab">
+  <h2>File Handling — Academic Records</h2>
+  <div class="sub">Lab 6 — write / read / process file</div>
+  <div class="card">
+    <div class="card-title">Write Records to File</div>
+    <div id="file-rows"></div>
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <button class="btn sec" onclick="addFileRow()">+ Add Row</button>
+      <button class="btn" onclick="doFileWrite()">Write to File</button>
+    </div>
+    <div id="fw-out" class="out"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Read & Generate Report</div>
+    <button class="btn" onclick="doFileRead()">Read File</button>
+    <div id="fr-out" class="out"></div>
+    <div id="fr-stats" class="stats3" style="display:none"></div>
+  </div>
+</div>
+
+<!-- LAB 7 -->
+<div id="lab7" class="tab">
+  <h2>Directory Scanner with Exception Handling</h2>
+  <div class="sub">Lab 7 — os.walk, user-defined exceptions</div>
+  <div class="card">
+    <div><label>Directory Path</label><input id="scan-path" placeholder="e.g. /home/user/projects"/></div>
+    <button class="btn" style="margin-top:10px" onclick="doScan()">Scan Directory</button>
+    <div id="scan-out" class="out"></div>
+    <div id="scan-tree" class="tree"></div>
+  </div>
+</div>
+
+<!-- LAB 8 -->
+<div id="lab8" class="tab">
+  <h2>Performance Analytics</h2>
+  <div class="sub">Lab 8 — NumPy-style analysis (mean, top performer, bar chart)</div>
+  <div class="card">
+    <div class="card-title">Student Scores (Math / Science / English)</div>
+    <div id="a-rows"></div>
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <button class="btn sec" onclick="addARow()">+ Add Student</button>
+      <button class="btn" onclick="doAnalytics()">Analyze</button>
+    </div>
+    <div id="a-out" class="out"></div>
+    <div id="a-chart" style="display:none">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:14px">AVERAGE SCORES PER SUBJECT</div>
+      <div class="bars" id="a-bars"></div>
+      <div class="stats3" id="a-tops"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+const BASE = "http://localhost:5000";
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+async function post(url, body){ const r=await fetch(BASE+url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); return r.json(); }
+async function get(url){ const r=await fetch(BASE+url); return r.json(); }
+function show(id,html){ const el=document.getElementById(id); el.style.display="block"; el.innerHTML=html; }
+function go(id,btn){ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); }
+
+// ── Lab 1 ─────────────────────────────────────────────────────────────────────
+const students = [];
+async function doRegister(){
+  const name = document.getElementById("r-name").value.trim();
+  const score = document.getElementById("r-score").value;
+  if(!name || score==="") return show("r-out","<span class='err'>Please fill in all fields.</span>");
+  const d = await post("/api/register",{name,score});
+  if(d.error) return show("r-out",`<span class='err'>✗ ${d.error}</span>`);
+  show("r-out",`--- Student Report ---\nName  : ${d.name}\nScore : ${d.score}\nGrade : ${d.grade}\n<span class='ok'>Remark: ${d.remark}</span>`);
+  students.push(d);
+  const tb = document.getElementById("r-table");
+  tb.innerHTML = students.map(s=>`<tr><td>${s.name}</td><td style="font-family:var(--mono)">${s.score}</td><td><span class="badge ${s.grade}">${s.grade}</span></td><td style="color:var(--muted)">${s.remark}</td></tr>`).join("");
+}
+
+// ── Lab 2 ─────────────────────────────────────────────────────────────────────
+async function doEnroll(){
+  const course = document.getElementById("e-course").value.trim();
+  const credits = document.getElementById("e-credits").value;
+  if(!course||!credits) return show("e-out","<span class='err'>Fill in all fields.</span>");
+  const d = await post("/api/enroll",{course,credits});
+  if(d.error) return show("e-out",`<span class='err'>✗ ${d.error}</span>`);
+  show("e-out",`<span class='ok'>✓ Course '${course}' with ${credits} credits added.</span>`);
+  renderCourses(d.courses);
+}
+async function resetCourses(){
+  await post("/api/courses/reset",{});
+  renderCourses([]);
+  show("e-out","Courses cleared.");
+}
+function renderCourses(courses){
+  document.getElementById("e-table").innerHTML = courses.length
+    ? courses.map((c,i)=>`<tr><td style="color:var(--muted)">${i+1}</td><td>${c.course}</td><td style="font-family:var(--mono)">${c.credits}</td></tr>`).join("")
+    : `<tr><td colspan="3" style="color:var(--muted);text-align:center">No courses enrolled</td></tr>`;
+}
+renderCourses([]);
+
+// ── Lab 3 ─────────────────────────────────────────────────────────────────────
+const recData=[{name:"Priya",age:20,grades:[85,90,78]},{name:"Rahul",age:21,grades:[72,88,91]},{name:"Anita",age:19,grades:[95,89,92]}];
+document.getElementById("rec-table").innerHTML = recData.map(s=>{
+  const avg=(s.grades.reduce((a,b)=>a+b,0)/s.grades.length).toFixed(1);
+  return `<tr><td>${s.name}</td><td>${s.age}</td><td style="font-family:var(--mono)">[${s.grades.join(", ")}]</td><td style="color:var(--green);font-family:var(--mono)">${avg}</td></tr>`;
+}).join("");
+
+function doSets(){
+  const a = new Set(document.getElementById("setA").value.split(",").map(x=>x.trim()).filter(Boolean));
+  const b = new Set(document.getElementById("setB").value.split(",").map(x=>x.trim()).filter(Boolean));
+  const common = [...a].filter(x=>b.has(x));
+  const all    = [...new Set([...a,...b])];
+  const onlyA  = [...a].filter(x=>!b.has(x));
+  show("set-out",
+    `event_A = {${[...a].join(", ")}}\nevent_B = {${[...b].join(", ")}}\n\n`+
+    `<span class='ok'>Common Participants  : {${common.join(", ")}}</span>\n`+
+    `<span class='ok'>All Participants     : {${all.join(", ")}}</span>\n`+
+    `<span class='warn'>Only Event A         : {${onlyA.join(", ")}}</span>`);
+}
+
+// ── Lab 4 ─────────────────────────────────────────────────────────────────────
+async function doSortSearch(){
+  const ids = document.getElementById("ss-ids").value.split(",").map(x=>parseInt(x.trim())).filter(n=>!isNaN(n));
+  const target = parseInt(document.getElementById("ss-target").value);
+  const d = await post("/api/sort_search",{ids,target});
+  const li = d.linear>=0 ? `<span class='ok'>found at index ${d.linear}</span>` : `<span class='err'>not found</span>`;
+  const bi = d.binary>=0 ? `<span class='ok'>found at index ${d.binary}</span>` : `<span class='err'>not found</span>`;
+  show("ss-out",
+    `Original IDs   : [${ids.join(", ")}]\nSorted IDs     : [${d.sorted_ids.join(", ")}]\n\n`+
+    `Linear Search  (target=${target}) → ${li}\n`+
+    `Binary Search  (target=${target}) → ${bi}`);
+}
+
+// ── Lab 5 ─────────────────────────────────────────────────────────────────────
+async function doFee(){
+  const d = await post("/api/fee",{tuition:document.getElementById("f-t").value,hostel:document.getElementById("f-h").value,transport:document.getElementById("f-tr").value});
+  show("f-out",
+    `Tuition Fee   : ₹${d.tuition.toLocaleString()}\n`+
+    `Hostel Fee    : ₹${d.hostel.toLocaleString()}\n`+
+    `Transport Fee : ₹${d.transport.toLocaleString()}\n`+
+    `${"─".repeat(30)}\n`+
+    `<span class='ok'>Total Fee     : ₹${d.total.toLocaleString()}</span>`);
+}
+
+// ── Lab 6 ─────────────────────────────────────────────────────────────────────
+let rid=101;
+function addFileRow(name="",marks=""){
+  const d=document.createElement("div"); d.className="drow";
+  d.innerHTML=`<input value="${rid++}" class="fr-id" readonly style="color:var(--muted)"/><input value="${name}" placeholder="Name" class="fr-name"/><input value="${marks}" type="number" placeholder="Marks" class="fr-marks"/><button onclick="this.parentNode.remove()">×</button>`;
+  document.getElementById("file-rows").appendChild(d);
+}
+[["Arjun",85],["Meera",92],["Ravi",76],["Anita",89]].forEach(([n,m])=>addFileRow(n,m));
+
+async function doFileWrite(){
+  const records=[...document.querySelectorAll("#file-rows .drow")].map(d=>({id:d.querySelector(".fr-id").value,name:d.querySelector(".fr-name").value,marks:d.querySelector(".fr-marks").value})).filter(r=>r.name);
+  const d=await post("/api/file/write",{records});
+  show("fw-out",d.error?`<span class='err'>✗ ${d.error}</span>`:`<span class='ok'>✓ ${d.message}</span>`);
+}
+async function doFileRead(){
+  const d=await get("/api/file/read");
+  if(d.error) return show("fr-out",`<span class='err'>✗ ${d.error}</span>`);
+  show("fr-out", d.raw.join("\n"));
+  document.getElementById("fr-stats").style.display="grid";
+  document.getElementById("fr-stats").innerHTML=`
+    <div class="stat"><div class="val">${d.total_students}</div><div class="key">Total Students</div></div>
+    <div class="stat"><div class="val">${d.average_marks}</div><div class="key">Average Marks</div></div>
+    <div class="stat"><div class="val">${d.top_student}</div><div class="key">Top Student (${d.highest_marks})</div></div>`;
+}
+
+// ── Lab 7 ─────────────────────────────────────────────────────────────────────
+async function doScan(){
+  const path=document.getElementById("scan-path").value.trim();
+  if(!path) return show("scan-out","<span class='err'>Enter a directory path.</span>");
+  document.getElementById("scan-tree").innerHTML="";
+  const d=await post("/api/scan",{path});
+  if(d.error) return show("scan-out",`<span class='err'>✗ ${d.error}</span>`);
+  if(d.warning) show("scan-out",`<span class='warn'>⚠ ${d.warning}</span>`);
+  else show("scan-out",`<span class='ok'>✓ Scan complete — ${d.tree.length} entries</span>`);
+  document.getElementById("scan-tree").innerHTML=d.tree.map(n=>{
+    const pad="│  ".repeat(Math.max(0,n.level-1))+(n.level>0?"├─ ":"");
+    return n.type==="dir"
+      ? `<div class="d">${pad}📁 ${n.name}/</div>`
+      : `<div class="f">${pad}📄 ${n.name}</div>`;
+  }).join("");
+}
+
+// ── Lab 8 ─────────────────────────────────────────────────────────────────────
+function addARow(n="",m="",s="",e=""){
+  const d=document.createElement("div"); d.className="drow"; d.style.gridTemplateColumns="2fr 1fr 1fr 1fr 28px";
+  d.innerHTML=`<input value="${n}" placeholder="Name" class="an"/><input value="${m}" type="number" placeholder="Math" class="am"/><input value="${s}" type="number" placeholder="Science" class="as"/><input value="${e}" type="number" placeholder="English" class="ae"/><button onclick="this.parentNode.remove()">×</button>`;
+  document.getElementById("a-rows").appendChild(d);
+}
+[["Priya",85,88,90],["Rahul",72,91,76],["Anita",95,89,92],["Kiran",60,74,80]].forEach(r=>addARow(...r));
+
+async function doAnalytics(){
+  const rows=[...document.querySelectorAll("#a-rows .drow")].map(d=>({name:d.querySelector(".an").value,math:parseFloat(d.querySelector(".am").value)||0,science:parseFloat(d.querySelector(".as").value)||0,english:parseFloat(d.querySelector(".ae").value)||0})).filter(r=>r.name);
+  const d=await post("/api/analytics",{rows});
+  if(d.error) return show("a-out",`<span class='err'>✗ ${d.error}</span>`);
+  show("a-out",
+    `Mean Scores  → Math: <span class='ok'>${d.means.math}</span>  Science: <span class='ok'>${d.means.science}</span>  English: <span class='ok'>${d.means.english}</span>\n\n`+
+    `Top in Math    : <span class='ok'>${d.tops.math}</span>\n`+
+    `Top in Science : <span class='ok'>${d.tops.science}</span>\n`+
+    `Top in English : <span class='ok'>${d.tops.english}</span>`);
+  const maxV=Math.max(d.means.math,d.means.science,d.means.english,1);
+  const cols=["#4ade80","#38bdf8","#f59e0b"];
+  document.getElementById("a-chart").style.display="block";
+  document.getElementById("a-bars").innerHTML=Object.entries(d.means).map(([s,v],i)=>`
+    <div class="bwrap"><div class="bval">${v}</div>
+    <div class="bar" style="height:${(v/maxV)*98}px;background:${cols[i]}"></div>
+    <div class="blabel">${s.charAt(0).toUpperCase()+s.slice(1)}</div></div>`).join("");
+  document.getElementById("a-tops").innerHTML=Object.entries(d.tops).map(([s,n])=>`
+    <div class="stat"><div class="val" style="font-size:15px">${n}</div><div class="key">Top in ${s.charAt(0).toUpperCase()+s.slice(1)}</div></div>`).join("");
+}
+</script>
+</body>
+</html>
