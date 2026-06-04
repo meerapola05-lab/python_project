@@ -1,0 +1,237 @@
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import os
+
+app = Flask(__name__)
+CORS(app)
+
+# ── Lab 1: Student Registration and Grade Evaluation ─────────────────────────
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.json
+    student_name = data["name"]
+    score = float(data["score"])
+
+    if score >= 90 and score <= 100:
+        grade = "A"
+        remark = "Excellent"
+    elif score >= 75:
+        grade = "B"
+        remark = "Very Good"
+    elif score >= 60:
+        grade = "C"
+        remark = "Good"
+    elif score >= 40:
+        grade = "D"
+        remark = "Average"
+    else:
+        grade = "F"
+        remark = "Needs Improvement"
+
+    return jsonify(name=student_name, score=score, grade=grade, remark=remark)
+
+
+# ── Lab 2: Course Enrollment ──────────────────────────────────────────────────
+courses = []  # list to store (course_name, credits)
+max_courses = 5
+
+@app.route("/api/enroll", methods=["POST"])
+def enroll():
+    data = request.json
+    course_name = data["course"]
+    credits = data["credits"]
+
+    if len(courses) >= max_courses:
+        return jsonify(error="Maximum course limit reached!"), 400
+
+    if not str(credits).isdigit():
+        return jsonify(error="Invalid credit value!"), 400
+
+    credits = int(credits)
+    if credits <= 0:
+        return jsonify(error="Credit must be positive!"), 400
+
+    courses.append((course_name, credits))
+    return jsonify(courses=[{"course": c, "credits": cr} for c, cr in courses])
+
+@app.route("/api/courses")
+def get_courses():
+    return jsonify(courses=[{"course": c, "credits": cr} for c, cr in courses])
+
+@app.route("/api/courses/reset", methods=["POST"])
+def reset_courses():
+    courses.clear()
+    return jsonify(message="Courses cleared")
+
+
+# ── Lab 4: Sorting and Searching ─────────────────────────────────────────────
+@app.route("/api/sort_search", methods=["POST"])
+def sort_search():
+    data = request.json
+    student_ids = data["ids"]
+    target = data["target"]
+
+    # Bubble Sort
+    n = len(student_ids)
+    for i in range(n):
+        for j in range(0, n - i - 1):
+            if student_ids[j] > student_ids[j + 1]:
+                temp = student_ids[j]
+                student_ids[j] = student_ids[j + 1]
+                student_ids[j + 1] = temp
+
+    # Linear Search
+    found_index = -1
+    for i in range(len(student_ids)):
+        if student_ids[i] == target:
+            found_index = i
+            break
+
+    linear_result = found_index
+
+    # Binary Search
+    low = 0
+    high = len(student_ids) - 1
+    found_index = -1
+    while low <= high:
+        mid = (low + high) // 2
+        if student_ids[mid] == target:
+            found_index = mid
+            break
+        elif student_ids[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    binary_result = found_index
+
+    return jsonify(sorted_ids=student_ids, linear=linear_result, binary=binary_result)
+
+
+# ── Lab 5: Fee Calculation ────────────────────────────────────────────────────
+def calculate_fee(tuition_fee, hostel_fee=0, transportation_fee=0):
+    total_fee = tuition_fee + hostel_fee + transportation_fee
+    return total_fee
+
+@app.route("/api/fee", methods=["POST"])
+def fee():
+    data = request.json
+    tuition = float(data.get("tuition", 0))
+    hostel = float(data.get("hostel", 0))
+    transport = float(data.get("transport", 0))
+    total = calculate_fee(tuition, hostel, transport)
+    return jsonify(tuition=tuition, hostel=hostel, transport=transport, total=total)
+
+
+# ── Lab 6: File Handling ──────────────────────────────────────────────────────
+@app.route("/api/file/write", methods=["POST"])
+def file_write():
+    data = request.json
+    records = data["records"]
+
+    with open("student_records.txt", "w") as file:
+        file.write("ID,Name,Marks\n")
+        for r in records:
+            file.write(f"{r['id']},{r['name']},{r['marks']}\n")
+
+    return jsonify(message="Student records written to file successfully.")
+
+@app.route("/api/file/read")
+def file_read():
+    if not os.path.exists("student_records.txt"):
+        return jsonify(error="File not found. Please write records first."), 404
+
+    with open("student_records.txt", "r") as file:
+        records = file.readlines()
+
+    total_students = 0
+    total_marks = 0
+    highest_marks = -1
+    top_student = ""
+
+    rows = []
+    for record in records[1:]:
+        parts = record.strip().split(",")
+        name = parts[1]
+        marks = int(parts[2])
+        rows.append({"id": parts[0], "name": name, "marks": marks})
+        total_students += 1
+        total_marks += marks
+        if marks > highest_marks:
+            highest_marks = marks
+            top_student = name
+
+    average_marks = total_marks / total_students if total_students > 0 else 0
+
+    return jsonify(
+        raw=[r.strip() for r in records],
+        rows=rows,
+        total_students=total_students,
+        average_marks=round(average_marks, 2),
+        top_student=top_student,
+        highest_marks=highest_marks
+    )
+
+
+# ── Lab 7: Directory Scanning ─────────────────────────────────────────────────
+class MissingFileOrFolderError(Exception):
+    pass
+
+@app.route("/api/scan", methods=["POST"])
+def scan():
+    data = request.json
+    path = data["path"]
+
+    try:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Invalid directory path: {path}")
+
+        tree = []
+        for root, dirs, files in os.walk(path):
+            level = root.replace(path, "").count(os.sep)
+            tree.append({"type": "dir", "name": os.path.basename(root) or path, "level": level})
+            for f in files:
+                tree.append({"type": "file", "name": f, "level": level + 1})
+            if not files and not dirs:
+                raise MissingFileOrFolderError(f"Empty folder detected: {root}")
+
+        return jsonify(tree=tree)
+
+    except FileNotFoundError as e:
+        return jsonify(error=str(e)), 404
+    except MissingFileOrFolderError as e:
+        return jsonify(tree=tree, warning=str(e))
+    except Exception as e:
+        return jsonify(error=f"Unexpected Error: {e}"), 500
+
+
+# ── Lab 8: Performance Analytics ─────────────────────────────────────────────
+@app.route("/api/analytics", methods=["POST"])
+def analytics():
+    data = request.json
+    rows = data["rows"]  # [{name, math, science, english}]
+
+    math_scores    = [r["math"]    for r in rows]
+    science_scores = [r["science"] for r in rows]
+    english_scores = [r["english"] for r in rows]
+
+    mean_math    = round(sum(math_scores)    / len(math_scores), 2)
+    mean_science = round(sum(science_scores) / len(science_scores), 2)
+    mean_english = round(sum(english_scores) / len(english_scores), 2)
+
+    top_math    = max(rows, key=lambda r: r["math"])["name"]
+    top_science = max(rows, key=lambda r: r["science"])["name"]
+    top_english = max(rows, key=lambda r: r["english"])["name"]
+
+    return jsonify(
+        means={"math": mean_math, "science": mean_science, "english": mean_english},
+        tops={"math": top_math, "science": top_science, "english": top_english}
+    )
+
+
+@app.route("/")
+def index():
+    return send_from_directory(".", "index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
